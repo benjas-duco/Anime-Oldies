@@ -10,5 +10,5 @@ import com.benjamin.animeoldies.model.Anime;
 @Repository
 public interface AnimeRepo extends JpaRepository<Anime, Long> {
     List<Anime> findByTitleContainingIgnoreCase(String title);
-    List<Anime> findByState(String state);
+    List<Anime> findByState_Id(Long stateId);
 }
