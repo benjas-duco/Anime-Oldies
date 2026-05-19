@@ -10,4 +10,5 @@ import com.benjamin.animeoldies.model.State;
 @Repository
 public interface StateRepo extends JpaRepository<State, Integer> {
     Optional<State> findById(Integer id);
+    Optional<State> findByName(String name);
 }

@@ -17,4 +17,5 @@ public class AnimeDTO {
     private String state;
     private List<String> links;
     private List<String> links_name;
+    private List<String> categories;
 }
