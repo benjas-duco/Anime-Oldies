@@ -1,6 +1,10 @@
-package com.benjamin.animeoldies.model;
+package com.benjamin.animeoldies.DTOs;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import com.benjamin.animeoldies.model.Categoria;
+import com.benjamin.animeoldies.model.Link;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +19,6 @@ public class AnimeDTO {
     private String resume;
     private double cultLevel;
     private String state;
-    private List<String> links;
-    private List<String> links_name;
-    private List<String> categories;
+    private List<Link> links = new ArrayList<>();
+    private List<Categoria> categories = new ArrayList<>();
 }

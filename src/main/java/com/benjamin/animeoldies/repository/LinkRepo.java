@@ -13,4 +13,6 @@ import com.benjamin.animeoldies.model.Link;
 public interface LinkRepo extends JpaRepository<Link, Integer> {
     @Query("SELECT l FROM Link l WHERE l.anime.id = :anime_id")
     List<Link> findLinkByAnimeId(@Param("anime_id") Integer animeId);
+
+    void deleteByAnime_Id(Integer anime_id);
 }

@@ -1,6 +1,5 @@
 package com.benjamin.animeoldies.service;
 
-import java.lang.StackWalker.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -8,14 +7,19 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.benjamin.animeoldies.DTOs.AnimeDTO;
+import com.benjamin.animeoldies.DTOs.AnimeUpdateDTO;
+import com.benjamin.animeoldies.DTOs.CategoriaDTO;
+import com.benjamin.animeoldies.DTOs.LinkDTO;
 import com.benjamin.animeoldies.model.Anime;
-import com.benjamin.animeoldies.model.AnimeDTO;
 import com.benjamin.animeoldies.model.Categoria;
+import com.benjamin.animeoldies.model.CategoriaAnime;
 import com.benjamin.animeoldies.model.Link;
 import com.benjamin.animeoldies.model.Review;
 import com.benjamin.animeoldies.model.State;
 import com.benjamin.animeoldies.repository.AnimeRepo;
 import com.benjamin.animeoldies.repository.CategoriaAnimeRepo;
+import com.benjamin.animeoldies.repository.CategoriaRepo;
 import com.benjamin.animeoldies.repository.LinkRepo;
 import com.benjamin.animeoldies.repository.ReviewRepo;
 import com.benjamin.animeoldies.repository.StateRepo;
@@ -37,56 +41,147 @@ public class AnimeService {
     @Autowired
     StateRepo stateRepo;
 
-    public String borrarAnime(Integer animeId) {
-        Anime an = obtenerAnimesPorId(animeId);
-        if(an == null) return "Anime no encontrado";
+    @Autowired
+    CategoriaRepo categoriaRepo;
 
+    private int testLinks(List<LinkDTO> links) {
+        for(LinkDTO l : links) {
+            if (l.getLink() == null || l.getLink().strip().equals("")) return 1;
+            if (l.getName() == null || l.getName().strip().equals("")) return 2;
+        }
+        return 0;
+    }
+
+    private void agregarLinks(Integer animeId, List<LinkDTO> links) {
+        for(LinkDTO l : links) {
+            Link link = new Link();
+
+            link.setAnime(animeRepo.findById(animeId).get());
+            link.setLink(l.getLink());
+            link.setName(l.getName());
+
+            linkRepo.save(link);
+        }
+    }
+
+    private void borrarLinks(Integer animeId) {
+        linkRepo.deleteByAnime_Id(animeId);
+    }
+
+    private int testCategories(List<CategoriaDTO> cats) {
+        for(CategoriaDTO c : cats) {
+            if (c.getName() == null || c.getName().strip().equals("")) return 1;
+        }
+        return 0;
+    }
+
+    private void agregarCategorias(Integer animeId, List<CategoriaDTO> cats) {
+        Optional<Anime> anime = animeRepo.findById(animeId);
+        for(CategoriaDTO c : cats) {
+            Optional<Categoria> cat = categoriaRepo.findByName(c.getName());
+            CategoriaAnime catan = new CategoriaAnime();
+
+            if(cat.isEmpty()) {
+                Categoria ca = new Categoria();
+                ca.setName(c.getName());
+                categoriaRepo.save(ca);
+
+                catan.setCategory(ca);
+            }else{
+                catan.setCategory(cat.get());
+            }
+
+            catan.setAnime(anime.get());
+            categoriaAnimeRepo.save(catan);
+        }
+    }
+
+    private void borrarCategorias(Integer animeID) {
+        categoriaAnimeRepo.deleteByAnime_Id(animeID);
+    }
+
+    public String borrarAnime(Integer animeId) {
+        if(animeId == null) return "Se debe proporcionar una ID valida";
+        Optional<Anime> an = animeRepo.findById(animeId);
+        if(an.isEmpty()) return "Anime no encontrado";
+
+        reviewRepo.deleteByAnime_Id(animeId);
+        categoriaAnimeRepo.deleteByAnime_Id(animeId);
+        linkRepo.deleteByAnime_Id(animeId);
         animeRepo.deleteById(animeId);
         return "Anime eliminado correctamente";
     }
 
-    public String editarAnime(Anime anime) {
-        Anime an = obtenerAnimesPorId(anime.getId());
-        if(an == null) return "Anime no encontrado";
+    public String editarAnime(Integer animeId, AnimeUpdateDTO anime) {
+        if(animeId == null) return "Se debe proporcionar una ID valida";
+        Optional<Anime> an = animeRepo.findById(animeId);
+        if(an.isEmpty()) return "Anime no encontrado";
 
-        if (anime.getTitle() == null || anime.getTitle().strip() == "") return "El titulo del anime no puede ser nulo o estar en blanco";
-        if (anime.getResume() == null || anime.getResume().strip() == "") return "El resumen del anime no puede ser nulo o estar en blanco";
-        if (anime.getState() == null) return "El estado del anime no puede ser nulo";
+        if (anime.getTitle() == null || anime.getTitle().strip().equals("")) return "El titulo del anime no puede ser nulo o estar en blanco";
+        if (anime.getResume() == null || anime.getResume().strip().equals("")) return "El resumen del anime no puede ser nulo o estar en blanco";
+        if (anime.getCategories() == null || anime.getCategories().isEmpty()) return "Este anime no puede no tener ninguna categoria asociada";
 
-        animeRepo.save(anime);
+        if (anime.getLinks() != null) {
+            int rel = testLinks(anime.getLinks());
+
+            if(rel == 1) return "No se puede actualizar el anime con un link vacio o nulo";
+            if(rel == 2) return "No se puede actualizar el anime con un link sin nombre o nulo";
+
+            borrarLinks(animeId);
+            agregarLinks(animeId,anime.getLinks());
+        }
+
+        int rel = testCategories(anime.getCategories());
+
+        if(rel == 1) return "No se puede actualizar el anime con una categoria vacia o nula";
+
+        borrarCategorias(animeId);
+        agregarCategorias(animeId,anime.getCategories());
+
+        Anime finalAnime = an.get();
+
+        finalAnime.setTitle(anime.getTitle());
+        finalAnime.setResume(anime.getResume());
+
+        animeRepo.save(finalAnime);
+
         return "Anime actualizado correctamente";
     }
 
-    public String agregarAnime(Anime anime) {
-        List<Anime> animes = obtenerAnimes();
-        
-        for(Anime a : animes) {
-            if(a.getTitle().equals(anime.getTitle())) return "Ya existe un Anime con este titulo";
+    public String agregarAnime(AnimeUpdateDTO anime) {
+        if (anime.getTitle() == null || anime.getTitle().strip().equals("")) return "El titulo del anime no puede ser nulo o estar en blanco";
+        if (anime.getResume() == null || anime.getResume().strip().equals("")) return "El resumen del anime no puede ser nulo o estar en blanco";
+        if (anime.getCategories() == null || anime.getCategories().isEmpty()) return "Este anime no puede no tener ninguna categoria asociada";
+
+        Optional<Anime> an = animeRepo.findByTitle(anime.getTitle());
+        if(!an.isEmpty()) return "Ya existe un Anime con este titulo";
+
+        Anime a = new Anime();
+
+        if (anime.getLinks() != null) {
+            int rel = testLinks(anime.getLinks());
+            if(rel == 1) return "No se puede actualizar el anime con un link vacio o nulo";
+            if(rel == 2) return "No se puede actualizar el anime con un link sin nombre o nulo";
         }
 
-        if (anime.getTitle() == null || anime.getTitle().strip() == "") return "El titulo del anime no puede ser nulo o estar en blanco";
-        if (anime.getResume() == null || anime.getResume().strip() == "") return "El resumen del anime no puede ser nulo o estar en blanco";
-        Optional<State> state = stateRepo.findByName("en revision");
-        if (state.isEmpty()) stateRepo.save(new State(0,"en revision"));
-        
-        anime.setState(stateRepo.findByName("en revision").get());
+        int rel = testCategories(anime.getCategories());
 
-        animeRepo.save(anime);
+        if(rel == 1) return "No se puede actualizar el anime con una categoria vacia o nula";
+
+        a.setTitle(anime.getTitle());
+        a.setResume(anime.getResume());
+        a.setState(stateRepo.findByName("en revision").get());
+
+        Anime saved = animeRepo.save(a);
+
+        if (anime.getLinks() != null) agregarLinks(saved.getId(),anime.getLinks());
+        agregarCategorias(saved.getId(),anime.getCategories());
+
         return "Anime agregado correctamente";
     }
 
-    public Anime obtenerAnimesPorId(Integer animeId) {
-        Optional<Anime> anime = animeRepo.findById(animeId);
-
-        if (anime.isEmpty()) return null;
-        return anime.get();
-    }
-
-    public List<Anime> obtenerAnimes() {
-        return animeRepo.findAll();
-    }
-
     public String obtenerEstado(Integer animeId) {
+        if(animeId == null) return "Se debe proporcionar una ID valida";
         Optional<Anime> anime = animeRepo.findById(animeId);
         if(anime.isEmpty()) return null;  
 
@@ -95,6 +190,7 @@ public class AnimeService {
     }
 
     public List<Review> obtenerReviews(Integer animeId, String state) {
+        if(animeId == null) return new ArrayList<>();
         List<Review> reviews = reviewRepo.findByAnime_Id(animeId);
         List<Review> final_list = new ArrayList<>();
 
@@ -107,7 +203,7 @@ public class AnimeService {
         return final_list;
     }
 
-    public double obtenerCultLevel(Integer animeId) {
+    private double calcularCultLevel(Integer animeId) {
         List<Review> reviews = obtenerReviews(animeId, "aprobado");
         double reviewCount = reviews.size();
         double scoreSum = 0;
@@ -124,49 +220,123 @@ public class AnimeService {
     }
 
     public List<Categoria> obtenerCategorias(Integer animeId) {
+        if(animeId == null) return new ArrayList<>();
         return categoriaAnimeRepo.findCategoryByAnimeId(animeId);
     }
 
     public List<Link> obtenerLinks(Integer animeId) {
+        if(animeId == null) return new ArrayList<>();
         return linkRepo.findLinkByAnimeId(animeId);
     }
 
-    public List<AnimeDTO> obtenerAnimesPorCategoria(Integer categoryId) {
-        List<Anime> animes = categoriaAnimeRepo.findAnimeByCategoryId(categoryId);
-        List<AnimeDTO> listaAnimeDTOs = new ArrayList<>();
+    private AnimeDTO animeToDTO(Anime anime) {
+        AnimeDTO dto = new AnimeDTO();
 
-        for(Anime anime : animes) {
-            AnimeDTO dto = new AnimeDTO();
+        List<Link> links = linkRepo.findLinkByAnimeId(anime.getId());
+        List<Categoria> categories = categoriaAnimeRepo.findCategoryByAnimeId(anime.getId());
 
-            dto.setId(anime.getId());
-            dto.setTitle(anime.getTitle());
-            dto.setResume(anime.getResume());
+        dto.setId(anime.getId());
+        dto.setTitle(anime.getTitle());
+        dto.setResume(anime.getResume());
+        dto.setCultLevel(calcularCultLevel(anime.getId()));
+        dto.setState(anime.getState().getName());
+        dto.setLinks(links);
+        dto.setCategories(categories);
 
-            List<String> linkNames = new ArrayList<>();
-            List<String> linkLinks = new ArrayList<>();
+        return dto;
+    }
 
-            List<Link> links = obtenerLinks(anime.getId());
-            for(Link link : links) {
-                linkNames.add(link.getName());
-                linkLinks.add(link.getLink());
-            }
+    public List<AnimeDTO> obtenerAnimes() {
+        List<Anime> animes = animeRepo.findAll();
+        List<AnimeDTO> finalAnimeList = new ArrayList<>();
 
-            List<String> categories = new ArrayList<>();
-            List<Categoria> caList = obtenerCategorias(anime.getId());
-            for(Categoria ca : caList) {
-                categories.add(ca.getName());
-            }
-
-            dto.setCategories(categories);
-            dto.setLinks(linkLinks);
-            dto.setLinks_name(linkNames);
-
-            dto.setState(obtenerEstado(anime.getId()));
-            dto.setCultLevel(obtenerCultLevel(anime.getId()));
-
-            listaAnimeDTOs.add(dto);
+        for(Anime a : animes) {
+            AnimeDTO dto = animeToDTO(a);
+            finalAnimeList.add(dto);
         }
 
-        return listaAnimeDTOs;
+        return finalAnimeList;
+    }
+
+    public List<AnimeDTO> obtenerAnimesPorCategoria(Integer categoryId) {
+        if(categoryId == null) return new ArrayList<>();
+        List<Anime> animes = categoriaAnimeRepo.findAnimeByCategoryId(categoryId);
+        List<AnimeDTO> finalAnimeList = new ArrayList<>();
+
+        for(Anime a : animes) {
+            AnimeDTO dto = animeToDTO(a);
+            finalAnimeList.add(dto);
+        }
+
+        return finalAnimeList;
+    }
+
+    public List<AnimeDTO> obtenerAnimesPorEstado(String state) {
+        Optional<State> s = stateRepo.findByName(state);
+        if(s.isEmpty()) return new ArrayList<>();
+
+        List<Anime> animes = animeRepo.findByState_Id(s.get().getId());
+        List<AnimeDTO> finalAnimeList = new ArrayList<>();
+
+        for(Anime a : animes) {
+            AnimeDTO dto = animeToDTO(a);
+            finalAnimeList.add(dto);
+        }
+
+        return finalAnimeList;
+    }
+
+    public AnimeDTO obtenerAnimesPorId(Integer animeId) {
+        if(animeId == null) return new AnimeDTO();
+        Optional<Anime> a = animeRepo.findById(animeId);
+        if(a.isEmpty()) return null;
+
+        AnimeDTO dto = animeToDTO(a.get());
+        return dto;
+    }
+
+    public String aprobarAnime(String passwd, Integer animeId) {
+        if(animeId == null) return "Se debe proporcionar una ID valida";
+        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+
+        Optional<Anime> anime = animeRepo.findById(animeId);
+        if(anime.isEmpty()) return "El anime que se intenta aprobar no existe";
+
+        Optional<State> state = stateRepo.findByName("aprobado");
+        Anime a = anime.get();
+        a.setState(state.get());
+
+        animeRepo.save(a);
+        return "El anime fue aprobado correctamente";
+    }
+
+    public String rechazarAnime(String passwd, Integer animeId) {
+        if(animeId == null) return "Se debe proporcionar una ID valida";
+        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+
+        Optional<Anime> anime = animeRepo.findById(animeId);
+        if(anime.isEmpty()) return "El anime que se intenta rechazar no existe";
+
+        Optional<State> state = stateRepo.findByName("rechazado");
+        Anime a = anime.get();
+        a.setState(state.get());
+
+        animeRepo.save(a);
+        return "El anime fue rechazado correctamente";
+    }
+
+    public String resetearAnime(String passwd, Integer animeId) {
+        if(animeId == null) return "Se debe proporcionar una ID valida";
+        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+
+        Optional<Anime> anime = animeRepo.findById(animeId);
+        if(anime.isEmpty()) return "El anime al que se le intenta resetear el estado no existe";
+
+        Optional<State> state = stateRepo.findByName("en revision");
+        Anime a = anime.get();
+        a.setState(state.get());
+
+        animeRepo.save(a);
+        return "Estado del anime reseteado correctamente";
     }
 }

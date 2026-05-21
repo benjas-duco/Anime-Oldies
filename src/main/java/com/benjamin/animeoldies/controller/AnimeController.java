@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.benjamin.animeoldies.model.Anime;
-import com.benjamin.animeoldies.model.AnimeDTO;
+import com.benjamin.animeoldies.DTOs.AnimeDTO;
+import com.benjamin.animeoldies.DTOs.AnimeUpdateDTO;
 import com.benjamin.animeoldies.model.Categoria;
 import com.benjamin.animeoldies.model.Link;
 import com.benjamin.animeoldies.model.Review;
@@ -24,60 +24,75 @@ import com.benjamin.animeoldies.service.AnimeService;
 @RequestMapping("/api/v1")
 public class AnimeController {
     @Autowired
-    private AnimeService service;
+    private AnimeService animeService;
 
-    @DeleteMapping
-    public String deleteAnime(@RequestParam Integer animeId) {
-        return service.borrarAnime(animeId);
+    @DeleteMapping("/anime/{animeId}")
+    public String deleteAnime(@PathVariable Integer animeId) {
+        return animeService.borrarAnime(animeId);
     }
 
-    @PutMapping
-    public String updateAnime(@RequestBody Anime anime) {
-        return service.editarAnime(anime);
+    @PutMapping("/anime/{animeId}")
+    public String updateAnime(@PathVariable Integer animeId, @RequestBody AnimeUpdateDTO anime) {
+        return animeService.editarAnime(animeId, anime);
     }
 
-    @PostMapping
-    public String addAnime(@RequestBody Anime anime) {
-        return service.agregarAnime(anime);
+    @PostMapping("/anime")
+    public String postAnime(@RequestBody AnimeUpdateDTO anime) {
+        return animeService.agregarAnime(anime);
+    }
+
+    @GetMapping("/anime/{animeId}/state")
+    public String getState(@PathVariable Integer animeId) {
+        return animeService.obtenerEstado(animeId);
+    }
+
+    @GetMapping("/anime/{animeId}/reviews")
+    public List<Review> getReviews(@PathVariable Integer animeId, @RequestParam String state) {
+        return animeService.obtenerReviews(animeId, state);
+    }
+
+    @GetMapping("/anime/{animeId}/categories")
+    public List<Categoria> getCategories(@PathVariable Integer animeId) {
+        return animeService.obtenerCategorias(animeId);
+    }
+
+    @GetMapping("/anime/{animeId}/links")
+    public List<Link> getLinks(@PathVariable Integer animeId) {
+        return animeService.obtenerLinks(animeId);
+    }
+
+    @GetMapping("/anime")
+    public List<AnimeDTO> getAnimes() {
+        return animeService.obtenerAnimes();
+    }
+
+    @GetMapping("/anime/by-category/{categoryId}")
+    public List<AnimeDTO> getAnimesByCategory(@PathVariable Integer categoryId) {
+        return animeService.obtenerAnimesPorCategoria(categoryId);
+    }
+
+    @GetMapping("/anime/by-state/{state}")
+    public List<AnimeDTO> getAnimesByState(@PathVariable String state) {
+        return animeService.obtenerAnimesPorEstado(state);
     }
 
     @GetMapping("/anime/{animeId}")
-    public Anime getAnimeById(@PathVariable Integer animeId) {
-        return service.obtenerAnimesPorId(animeId);
+    public AnimeDTO getAnimesById(@PathVariable Integer animeId) {
+        return animeService.obtenerAnimesPorId(animeId);
     }
 
-    @GetMapping
-    public List<Anime> getAnimes() {
-        return service.obtenerAnimes();
+    @PutMapping("/anime/{animeId}/approve")
+    public String aproveAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
+        return animeService.aprobarAnime(passwd, animeId);
     }
 
-    @GetMapping("/state")
-    public String getState(@RequestParam Integer animeId) {
-        return service.obtenerEstado(animeId);
+    @PutMapping("/anime/{animeId}/decline")
+    public String declineAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
+        return animeService.rechazarAnime(passwd, animeId);
     }
 
-    @GetMapping("/reviews")
-    public List<Review> obtenerReviews(@RequestParam Integer animeId, @RequestParam String state) {
-        return service.obtenerReviews(animeId, state);
-    }
-
-    @GetMapping("/cult")
-    public double getCultLevel(@RequestParam Integer animeId) {
-        return service.obtenerCultLevel(animeId);
-    }
-
-    @GetMapping("/getcat")
-    public List<Categoria> getAnimeCategories(@RequestParam Integer animeId) {
-        return service.obtenerCategorias(animeId);
-    }
-
-    @GetMapping("/links")
-    public List<Link> getLinks(@RequestParam Integer animeId) {
-        return service.obtenerLinks(animeId);
-    }
-
-    @GetMapping("/animescat")
-    public List<AnimeDTO> getAnimeByCategory(@RequestParam Integer categoryId) {
-        return service.obtenerAnimesPorCategoria(categoryId);
+    @PutMapping("/anime/{animeId}/reset")
+    public String resetAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
+        return animeService.resetearAnime(passwd, animeId);
     }
 }

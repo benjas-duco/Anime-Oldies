@@ -18,4 +18,6 @@ public interface CategoriaAnimeRepo extends JpaRepository<CategoriaAnime, Intege
 
     @Query("SELECT ca.category FROM CategoriaAnime ca WHERE ca.anime.id = :anime_id")
     List<Categoria> findCategoryByAnimeId(@Param("anime_id") Integer animeId);
+
+    void deleteByAnime_Id(Integer anime_id);
 }
