@@ -27,6 +27,7 @@ public class Review {
     @NotNull
     private Integer score;
 
+    @Lob
     @NotBlank
     private String body;
 

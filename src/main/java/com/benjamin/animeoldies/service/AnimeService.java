@@ -25,6 +25,8 @@ import com.benjamin.animeoldies.repository.LinkRepo;
 import com.benjamin.animeoldies.repository.ReviewRepo;
 import com.benjamin.animeoldies.repository.StateRepo;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class AnimeService {
     @Autowired
@@ -65,6 +67,7 @@ public class AnimeService {
         }
     }
 
+    @Transactional
     private void borrarLinks(Integer animeId) {
         linkRepo.deleteByAnime_Id(animeId);
     }
@@ -97,10 +100,12 @@ public class AnimeService {
         }
     }
 
+    @Transactional
     private void borrarCategorias(Integer animeID) {
         categoriaAnimeRepo.deleteByAnime_Id(animeID);
     }
 
+    @Transactional
     public ResponseEntity<String> borrarAnime(Integer animeId) {
         if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
         Optional<Anime> an = animeRepo.findById(animeId);
@@ -113,6 +118,7 @@ public class AnimeService {
         return ResponseEntity.ok("Anime eliminado correctamente");
     }
 
+    @Transactional
     public ResponseEntity<String> editarAnime(Integer animeId, AnimeUpdateDTO anime) {
         if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
         Optional<Anime> an = animeRepo.findById(animeId);

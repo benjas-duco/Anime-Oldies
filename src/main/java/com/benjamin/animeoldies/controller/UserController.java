@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.benjamin.animeoldies.DTOs.UserDTO;
@@ -23,27 +24,27 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/users")
-    public List<UserDTO> obtenerUsuarios() {
+    public List<UserDTO> getUsers() {
         return userService.obtenerUsuarios();
     }
 
     @GetMapping("/users/{userId}")
-    public UserDTO obtenerUsuarioPorId(@PathVariable Integer userId) {
+    public UserDTO getUserByID(@PathVariable Integer userId) {
         return userService.obtenerUsuarioPorId(userId);
     }
 
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<String> borrarUsuario(String passwd, Integer userId) {
+    public ResponseEntity<String> deleteUser(@RequestParam String passwd, @PathVariable Integer userId) {
         return userService.borrarUsuario(passwd, userId);
     }
 
     @PostMapping("/users")
-    public ResponseEntity<String> agregarUsuario(@RequestBody UserDTO user) {
+    public ResponseEntity<String> addUser(@RequestBody UserDTO user) {
         return userService.agregarUsuario(user);
     }
 
     @PutMapping("/users/{userId}/{username}")
-    public ResponseEntity<String> renombrarUsuario(@PathVariable Integer userId, @PathVariable String username) {
+    public ResponseEntity<String> renameUser(@PathVariable Integer userId, @PathVariable String username) {
         return userService.renombrarUsuario(userId, username);
     }
 }

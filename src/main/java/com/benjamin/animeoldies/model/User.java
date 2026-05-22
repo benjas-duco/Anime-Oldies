@@ -1,7 +1,5 @@
 package com.benjamin.animeoldies.model;
 
-import java.util.UUID;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -17,9 +15,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @NotBlank
-    private UUID uuid;
 
     @NotBlank
     private String nickname;

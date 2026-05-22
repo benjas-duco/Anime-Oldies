@@ -22,7 +22,7 @@ public class CategoryService {
     public ResponseEntity<String> borrarCategoria(Integer categoryId) {
         if(categoryId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
         Optional<Categoria> cat = categoriaRepo.findById(categoryId);
-        if(cat.isEmpty()) return ResponseEntity.status(401).body("No existe una categoria con ese ID");
+        if(cat.isEmpty()) return ResponseEntity.status(404).body("No existe una categoria con ese ID");
         categoriaRepo.deleteById(categoryId);
         return ResponseEntity.ok("Categoria eliminada correctamente");
     }
