@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.benjamin.animeoldies.DTOs.UserDTO;
@@ -38,31 +39,32 @@ public class UserService {
         return userToDTO(user.get());
     }
 
-    public String borrarUsuario(String passwd, Integer userId) {
-        if(userId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> borrarUsuario(String passwd, Integer userId) {
+        if(userId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
         Optional<User> user = userRepo.findById(userId);
-        if(user.isEmpty()) return "El usuario que se intenta eliminar no existe";
+        if(user.isEmpty()) return ResponseEntity.status(404).body("El usuario que se intenta eliminar no existe");
         userRepo.deleteById(userId);
-        return "El usuario se elimino correctamente";
+        return ResponseEntity.ok("El usuario se elimino correctamente");
     }
 
-    public String agregarUsuario(UserDTO user) {
-        if(user.getNickname() == null || user.getNickname().strip().equals("")) return "No se puede proporcionar un nombre de usuario nulo o vacio";
+    public ResponseEntity<String> agregarUsuario(UserDTO user) {
+        if(user.getNickname() == null || user.getNickname().strip().equals("")) 
+            return ResponseEntity.badRequest().body("No se puede proporcionar un nombre de usuario nulo o vacio");
         User newUser = new User();
         newUser.setNickname(user.getNickname());
         userRepo.save(newUser);
-        return "Usuario agregado con exito";
+        return ResponseEntity.ok("Usuario agregado con exito");
     }
 
-    public String renombrarUsuario(Integer userId, String nombre) {
-        if(userId == null) return "Se debe proporcionar una ID valida";
-        if(nombre == null || nombre.strip().equals("")) return "No se puede proporcionar un nombre de usuario nulo o vacio";
+    public ResponseEntity<String> renombrarUsuario(Integer userId, String nombre) {
+        if(userId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(nombre == null || nombre.strip().equals("")) return ResponseEntity.badRequest().body("No se puede proporcionar un nombre de usuario nulo o vacio");
         Optional<User> usuario = userRepo.findById(userId);
-        if(usuario.isEmpty()) return "El usuario que se intenta modificar no existe";
+        if(usuario.isEmpty()) return ResponseEntity.status(404).body("El usuario que se intenta modificar no existe");
         User user = usuario.get();
         user.setNickname(nombre);
         userRepo.save(user);
-        return "Nombre de usuario modificado correctamente";
+        return ResponseEntity.ok("Nombre de usuario modificado correctamente");
     }
 }

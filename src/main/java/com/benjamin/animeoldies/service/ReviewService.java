@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.benjamin.animeoldies.DTOs.ReviewDTO;
@@ -48,17 +49,19 @@ public class ReviewService {
         return reviewRepo.findByUser_Id(userId);
     }
 
-    public String agregarReview(ReviewDTO review) {
-        if(review.getAnimeId() == null) return "No se proporciona una ID valida para anime";
-        if(review.getUserId() == null) return "No se proporciona una ID valida para usario";
+    public ResponseEntity<String> agregarReview(ReviewDTO review) {
+        if(review.getAnimeId() == null) return ResponseEntity.badRequest().body("No se proporciona una ID valida para anime");
+        if(review.getUserId() == null) return ResponseEntity.badRequest().body("No se proporciona una ID valida para usario");
 
         Optional<User> user = userRepo.findById(review.getUserId());
         Optional<Anime> anime = animeRepo.findById(review.getAnimeId());
 
-        if(user.isEmpty()) return "El usuario con el que se intenta publicar la review no existe";
-        if(anime.isEmpty()) return "El anime en el cual se intenta publicar la review no existe";
-        if(review.getBody() == null || review.getBody().strip().equals("")) return "La review no puede tener un contenido vacio";
-        if(review.getScore() == null || review.getScore() < 0 || review.getScore() > 10) return "El puntaje de la review debe estar de entre 0 y 10";
+        if(user.isEmpty()) return ResponseEntity.status(404).body("El usuario con el que se intenta publicar la review no existe");
+        if(anime.isEmpty()) return ResponseEntity.status(404).body("El anime en el cual se intenta publicar la review no existe");
+        if(review.getBody() == null || review.getBody().strip().equals("")) 
+            return ResponseEntity.badRequest().body("La review no puede tener un contenido vacio");
+        if(review.getScore() == null || review.getScore() < 0 || review.getScore() > 10) 
+            return ResponseEntity.badRequest().body("El puntaje de la review debe estar de entre 0 y 10");
 
         Review postReview = new Review();
 
@@ -69,74 +72,76 @@ public class ReviewService {
         postReview.setState(stateRepo.findByName("en revision").get());
 
         reviewRepo.save(postReview);
-        return "Review agregada correctamente";
+        return ResponseEntity.ok("Review agregada correctamente");
     }
 
-    public String eliminarReview(Integer reviewId) {
-        if(reviewId == null) return "Se debe proporcionar una ID valida";
-        if(reviewRepo.findById(reviewId).isEmpty()) return "La review que se intenta eliminar no existe";
+    public ResponseEntity<String> eliminarReview(Integer reviewId) {
+        if(reviewId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(reviewRepo.findById(reviewId).isEmpty()) return ResponseEntity.status(404).body("La review que se intenta eliminar no existe");
         reviewRepo.deleteById(reviewId);
-        return "Review eliminada correctamente";
+        return ResponseEntity.ok("Review eliminada correctamente");
     }
 
-    public String actualizarReview(Integer reviewId, ReviewUpdateDTO newReview) {
-        if(reviewId == null) return "Se debe proporcionar una ID valida";
-        if(newReview.getBody() == null || newReview.getBody().strip().equals("")) return "La review no puede tener un contenido vacio";
-        if(newReview.getScore() == null || newReview.getScore() < 0 || newReview.getScore() > 10) return "El puntaje de la review debe estar de entre 0 y 10";
+    public ResponseEntity<String> actualizarReview(Integer reviewId, ReviewUpdateDTO newReview) {
+        if(reviewId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(newReview.getBody() == null || newReview.getBody().strip().equals("")) 
+            return ResponseEntity.badRequest().body("La review no puede tener un contenido vacio");
+        if(newReview.getScore() == null || newReview.getScore() < 0 || newReview.getScore() > 10) 
+            return ResponseEntity.badRequest().body("El puntaje de la review debe estar de entre 0 y 10");
 
         Optional<Review> review = reviewRepo.findById(reviewId);
 
-        if(review.isEmpty()) return "La review que se intenta actualizar no existe";
+        if(review.isEmpty()) return ResponseEntity.status(404).body("La review que se intenta actualizar no existe");
 
         review.get().setBody(newReview.getBody());
         review.get().setScore(newReview.getScore());
 
         reviewRepo.save(review.get());
-        return "Review actualizada correctamente";
+        return ResponseEntity.ok("Review actualizada correctamente");
     }
 
-    public String aprobarReview(String passwd, Integer reviewId) {
-        if(reviewId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> aprobarReview(String passwd, Integer reviewId) {
+        if(reviewId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
         Optional<Review> review = reviewRepo.findById(reviewId);
 
-        if(review.isEmpty()) return "La review que se intenta aprobar no existe";
+        if(review.isEmpty()) return ResponseEntity.status(404).body("La review que se intenta aprobar no existe");
         Optional<State> state = stateRepo.findByName("aprobado");
 
         Review r = review.get();
         r.setState(state.get());
         reviewRepo.save(r);
 
-        return "La review ha sido aprobada correctamente";
+        return ResponseEntity.ok("La review ha sido aprobada correctamente");
     }
 
-    public String rechazarReview(String passwd, Integer reviewId) {
-        if(reviewId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> rechazarReview(String passwd, Integer reviewId) {
+        if(reviewId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
         Optional<Review> review = reviewRepo.findById(reviewId);
 
-        if(review.isEmpty()) return "La review que se intenta rechazar no existe";
+        if(review.isEmpty()) return ResponseEntity.status(404).body("La review que se intenta rechazar no existe");
         Optional<State> state = stateRepo.findByName("rechazado");
 
         Review r = review.get();
         r.setState(state.get());
         reviewRepo.save(r);
 
-        return "La review ha sido rechazada correctamente";
+        return ResponseEntity.ok("La review ha sido rechazada correctamente");
     }
 
-    public String resetearEstadoDeReview(String passwd, Integer reviewId) {
-        if(reviewId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> resetearEstadoDeReview(String passwd, Integer reviewId) {
+        if(reviewId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
         Optional<Review> review = reviewRepo.findById(reviewId);
 
-        if(review.isEmpty()) return "La review a la que se le intenta resetear el estado no existe";
+        if(review.isEmpty()) return ResponseEntity.status(404).body("La review a la que se le intenta resetear el estado no existe");
         Optional<State> state = stateRepo.findByName("en revision");
 
         Review r = review.get();
         r.setState(state.get());
         reviewRepo.save(r);
 
-        return "El estado de la review ha sido reseteada correctamente";
+        return ResponseEntity.ok("El estado de la review ha sido reseteada correctamente");
     }
 }

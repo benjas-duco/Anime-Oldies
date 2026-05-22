@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.benjamin.animeoldies.DTOs.AnimeDTO;
@@ -100,32 +101,35 @@ public class AnimeService {
         categoriaAnimeRepo.deleteByAnime_Id(animeID);
     }
 
-    public String borrarAnime(Integer animeId) {
-        if(animeId == null) return "Se debe proporcionar una ID valida";
+    public ResponseEntity<String> borrarAnime(Integer animeId) {
+        if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
         Optional<Anime> an = animeRepo.findById(animeId);
-        if(an.isEmpty()) return "Anime no encontrado";
+        if(an.isEmpty()) return ResponseEntity.status(404).body("Anime no encontrado");
 
         reviewRepo.deleteByAnime_Id(animeId);
         categoriaAnimeRepo.deleteByAnime_Id(animeId);
         linkRepo.deleteByAnime_Id(animeId);
         animeRepo.deleteById(animeId);
-        return "Anime eliminado correctamente";
+        return ResponseEntity.ok("Anime eliminado correctamente");
     }
 
-    public String editarAnime(Integer animeId, AnimeUpdateDTO anime) {
-        if(animeId == null) return "Se debe proporcionar una ID valida";
+    public ResponseEntity<String> editarAnime(Integer animeId, AnimeUpdateDTO anime) {
+        if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
         Optional<Anime> an = animeRepo.findById(animeId);
-        if(an.isEmpty()) return "Anime no encontrado";
+        if(an.isEmpty()) return ResponseEntity.status(404).body("Anime no encontrado");
 
-        if (anime.getTitle() == null || anime.getTitle().strip().equals("")) return "El titulo del anime no puede ser nulo o estar en blanco";
-        if (anime.getResume() == null || anime.getResume().strip().equals("")) return "El resumen del anime no puede ser nulo o estar en blanco";
-        if (anime.getCategories() == null || anime.getCategories().isEmpty()) return "Este anime no puede no tener ninguna categoria asociada";
+        if (anime.getTitle() == null || anime.getTitle().strip().equals("")) 
+            return ResponseEntity.badRequest().body("El titulo del anime no puede ser nulo o estar en blanco");
+        if (anime.getResume() == null || anime.getResume().strip().equals("")) 
+            return ResponseEntity.badRequest().body("El resumen del anime no puede ser nulo o estar en blanco");
+        if (anime.getCategories() == null || anime.getCategories().isEmpty()) 
+            return ResponseEntity.badRequest().body("Este anime no puede no tener ninguna categoria asociada");
 
         if (anime.getLinks() != null) {
             int rel = testLinks(anime.getLinks());
 
-            if(rel == 1) return "No se puede actualizar el anime con un link vacio o nulo";
-            if(rel == 2) return "No se puede actualizar el anime con un link sin nombre o nulo";
+            if(rel == 1) return ResponseEntity.badRequest().body("No se puede actualizar el anime con un link vacio o nulo");
+            if(rel == 2) return ResponseEntity.badRequest().body("No se puede actualizar el anime con un link sin nombre o nulo");
 
             borrarLinks(animeId);
             agregarLinks(animeId,anime.getLinks());
@@ -133,7 +137,7 @@ public class AnimeService {
 
         int rel = testCategories(anime.getCategories());
 
-        if(rel == 1) return "No se puede actualizar el anime con una categoria vacia o nula";
+        if(rel == 1) return ResponseEntity.badRequest().body("No se puede actualizar el anime con una categoria vacia o nula");
 
         borrarCategorias(animeId);
         agregarCategorias(animeId,anime.getCategories());
@@ -145,28 +149,31 @@ public class AnimeService {
 
         animeRepo.save(finalAnime);
 
-        return "Anime actualizado correctamente";
+        return ResponseEntity.ok("Anime actualizado correctamente");
     }
 
-    public String agregarAnime(AnimeUpdateDTO anime) {
-        if (anime.getTitle() == null || anime.getTitle().strip().equals("")) return "El titulo del anime no puede ser nulo o estar en blanco";
-        if (anime.getResume() == null || anime.getResume().strip().equals("")) return "El resumen del anime no puede ser nulo o estar en blanco";
-        if (anime.getCategories() == null || anime.getCategories().isEmpty()) return "Este anime no puede no tener ninguna categoria asociada";
+    public ResponseEntity<String> agregarAnime(AnimeUpdateDTO anime) {
+        if (anime.getTitle() == null || anime.getTitle().strip().equals("")) 
+            return ResponseEntity.badRequest().body("El titulo del anime no puede ser nulo o estar en blanco");
+        if (anime.getResume() == null || anime.getResume().strip().equals("")) 
+            return ResponseEntity.badRequest().body("El resumen del anime no puede ser nulo o estar en blanco");
+        if (anime.getCategories() == null || anime.getCategories().isEmpty()) 
+            return ResponseEntity.badRequest().body("Este anime no puede no tener ninguna categoria asociada");
 
         Optional<Anime> an = animeRepo.findByTitle(anime.getTitle());
-        if(!an.isEmpty()) return "Ya existe un Anime con este titulo";
+        if(!an.isEmpty()) return ResponseEntity.status(409).body("Ya existe un Anime con este titulo");
 
         Anime a = new Anime();
 
         if (anime.getLinks() != null) {
             int rel = testLinks(anime.getLinks());
-            if(rel == 1) return "No se puede actualizar el anime con un link vacio o nulo";
-            if(rel == 2) return "No se puede actualizar el anime con un link sin nombre o nulo";
+            if(rel == 1) return ResponseEntity.badRequest().body("No se puede actualizar el anime con un link vacio o nulo");
+            if(rel == 2) return ResponseEntity.badRequest().body("No se puede actualizar el anime con un link sin nombre o nulo");
         }
 
         int rel = testCategories(anime.getCategories());
 
-        if(rel == 1) return "No se puede actualizar el anime con una categoria vacia o nula";
+        if(rel == 1) return ResponseEntity.badRequest().body("No se puede actualizar el anime con una categoria vacia o nula");
 
         a.setTitle(anime.getTitle());
         a.setResume(anime.getResume());
@@ -177,16 +184,16 @@ public class AnimeService {
         if (anime.getLinks() != null) agregarLinks(saved.getId(),anime.getLinks());
         agregarCategorias(saved.getId(),anime.getCategories());
 
-        return "Anime agregado correctamente";
+        return ResponseEntity.ok("Anime agregado correctamente");
     }
 
-    public String obtenerEstado(Integer animeId) {
-        if(animeId == null) return "Se debe proporcionar una ID valida";
+    public State obtenerEstado(Integer animeId) {
+        if(animeId == null) return new State();
         Optional<Anime> anime = animeRepo.findById(animeId);
-        if(anime.isEmpty()) return null;  
+        if(anime.isEmpty()) return new State();
 
         State estado = anime.get().getState();
-        return estado.getName();
+        return estado;
     }
 
     public List<Review> obtenerReviews(Integer animeId, String state) {
@@ -295,48 +302,48 @@ public class AnimeService {
         return dto;
     }
 
-    public String aprobarAnime(String passwd, Integer animeId) {
-        if(animeId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> aprobarAnime(String passwd, Integer animeId) {
+        if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
 
         Optional<Anime> anime = animeRepo.findById(animeId);
-        if(anime.isEmpty()) return "El anime que se intenta aprobar no existe";
+        if(anime.isEmpty()) return ResponseEntity.status(404).body("El anime que se intenta aprobar no existe");
 
         Optional<State> state = stateRepo.findByName("aprobado");
         Anime a = anime.get();
         a.setState(state.get());
 
         animeRepo.save(a);
-        return "El anime fue aprobado correctamente";
+        return ResponseEntity.ok("El anime fue aprobado correctamente");
     }
 
-    public String rechazarAnime(String passwd, Integer animeId) {
-        if(animeId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> rechazarAnime(String passwd, Integer animeId) {
+        if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
 
         Optional<Anime> anime = animeRepo.findById(animeId);
-        if(anime.isEmpty()) return "El anime que se intenta rechazar no existe";
+        if(anime.isEmpty()) return ResponseEntity.status(404).body("El anime que se intenta rechazar no existe");
 
         Optional<State> state = stateRepo.findByName("rechazado");
         Anime a = anime.get();
         a.setState(state.get());
 
         animeRepo.save(a);
-        return "El anime fue rechazado correctamente";
+        return ResponseEntity.ok("El anime fue rechazado correctamente");
     }
 
-    public String resetearAnime(String passwd, Integer animeId) {
-        if(animeId == null) return "Se debe proporcionar una ID valida";
-        if(!"admin1234".equals(passwd)) return "Acceso denegado a las funciones de administrador";
+    public ResponseEntity<String> resetearAnime(String passwd, Integer animeId) {
+        if(animeId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        if(!"admin1234".equals(passwd)) return ResponseEntity.status(401).body("Acceso denegado a las funciones de administrador");
 
         Optional<Anime> anime = animeRepo.findById(animeId);
-        if(anime.isEmpty()) return "El anime al que se le intenta resetear el estado no existe";
+        if(anime.isEmpty()) return ResponseEntity.status(404).body("El anime al que se le intenta resetear el estado no existe");
 
         Optional<State> state = stateRepo.findByName("en revision");
         Anime a = anime.get();
         a.setState(state.get());
 
         animeRepo.save(a);
-        return "Estado del anime reseteado correctamente";
+        return ResponseEntity.ok("Estado del anime reseteado correctamente");
     }
 }

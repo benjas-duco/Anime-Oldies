@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.benjamin.animeoldies.model.Categoria;
@@ -18,11 +19,11 @@ public class CategoryService {
         return categoriaRepo.findAll();
     }
 
-    public String borrarCategoria(Integer categoryId) {
-        if(categoryId == null) return "Se debe proporcionar una ID valida";
+    public ResponseEntity<String> borrarCategoria(Integer categoryId) {
+        if(categoryId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
         Optional<Categoria> cat = categoriaRepo.findById(categoryId);
-        if(cat.isEmpty()) return "No existe una categoria con ese ID";
+        if(cat.isEmpty()) return ResponseEntity.status(401).body("No existe una categoria con ese ID");
         categoriaRepo.deleteById(categoryId);
-        return "Categoria eliminada correctamente";
+        return ResponseEntity.ok("Categoria eliminada correctamente");
     }
 }

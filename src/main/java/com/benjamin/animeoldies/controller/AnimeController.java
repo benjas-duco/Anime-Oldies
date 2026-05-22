@@ -3,6 +3,7 @@ package com.benjamin.animeoldies.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import com.benjamin.animeoldies.DTOs.AnimeUpdateDTO;
 import com.benjamin.animeoldies.model.Categoria;
 import com.benjamin.animeoldies.model.Link;
 import com.benjamin.animeoldies.model.Review;
+import com.benjamin.animeoldies.model.State;
 import com.benjamin.animeoldies.service.AnimeService;
 
 @RestController
@@ -27,22 +29,22 @@ public class AnimeController {
     private AnimeService animeService;
 
     @DeleteMapping("/anime/{animeId}")
-    public String deleteAnime(@PathVariable Integer animeId) {
+    public ResponseEntity<String> deleteAnime(@PathVariable Integer animeId) {
         return animeService.borrarAnime(animeId);
     }
 
     @PutMapping("/anime/{animeId}")
-    public String updateAnime(@PathVariable Integer animeId, @RequestBody AnimeUpdateDTO anime) {
+    public ResponseEntity<String> updateAnime(@PathVariable Integer animeId, @RequestBody AnimeUpdateDTO anime) {
         return animeService.editarAnime(animeId, anime);
     }
 
     @PostMapping("/anime")
-    public String postAnime(@RequestBody AnimeUpdateDTO anime) {
+    public ResponseEntity<String> postAnime(@RequestBody AnimeUpdateDTO anime) {
         return animeService.agregarAnime(anime);
     }
 
     @GetMapping("/anime/{animeId}/state")
-    public String getState(@PathVariable Integer animeId) {
+    public State getState(@PathVariable Integer animeId) {
         return animeService.obtenerEstado(animeId);
     }
 
@@ -82,17 +84,17 @@ public class AnimeController {
     }
 
     @PutMapping("/anime/{animeId}/approve")
-    public String aproveAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
+    public ResponseEntity<String> aproveAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
         return animeService.aprobarAnime(passwd, animeId);
     }
 
     @PutMapping("/anime/{animeId}/decline")
-    public String declineAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
+    public ResponseEntity<String> declineAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
         return animeService.rechazarAnime(passwd, animeId);
     }
 
     @PutMapping("/anime/{animeId}/reset")
-    public String resetAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
+    public ResponseEntity<String> resetAnime(@RequestParam String passwd, @PathVariable Integer animeId) {
         return animeService.resetearAnime(passwd, animeId);
     }
 }

@@ -1,9 +1,9 @@
 package com.benjamin.animeoldies.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,32 +41,32 @@ public class ReviewController {
     }
 
     @PostMapping("/reviews")
-    public String addReview(@RequestBody ReviewDTO review) {
+    public ResponseEntity<String> addReview(@RequestBody ReviewDTO review) {
         return reviewService.agregarReview(review);
     }
 
     @DeleteMapping("/reviews/{reviewId}")
-    public String deleteReview(@PathVariable Integer reviewId) {
+    public ResponseEntity<String> deleteReview(@PathVariable Integer reviewId) {
         return reviewService.eliminarReview(reviewId);
     }
 
     @PutMapping("/reviews/{reviewId}")
-    public String updateReview(@PathVariable Integer reviewId, @RequestBody ReviewUpdateDTO newReview) {
+    public ResponseEntity<String> updateReview(@PathVariable Integer reviewId, @RequestBody ReviewUpdateDTO newReview) {
         return reviewService.actualizarReview(reviewId, newReview);
     }
 
     @PutMapping("/reviews/{reviewId}/aprove")
-    public String aproveReview(@RequestParam String passwd, @PathVariable Integer reviewId) {
+    public ResponseEntity<String> aproveReview(@RequestParam String passwd, @PathVariable Integer reviewId) {
         return reviewService.aprobarReview(passwd, reviewId);
     }
 
     @PutMapping("/reviews/{reviewId}/decline")
-    public String declineReview(@RequestParam String passwd, @PathVariable Integer reviewId) {
+    public ResponseEntity<String> declineReview(@RequestParam String passwd, @PathVariable Integer reviewId) {
         return reviewService.rechazarReview(passwd, reviewId);
     }
 
     @PutMapping("/reviews/{reviewId}/reset")
-    public String resetReview(@RequestParam String passwd, @PathVariable Integer reviewId) {
+    public ResponseEntity<String> resetReview(@RequestParam String passwd, @PathVariable Integer reviewId) {
         return reviewService.resetearEstadoDeReview(passwd, reviewId);
     }
 }

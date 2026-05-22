@@ -3,6 +3,7 @@ package com.benjamin.animeoldies.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,17 +33,17 @@ public class UserController {
     }
 
     @DeleteMapping("/users/{userId}")
-    public String borrarUsuario(String passwd, Integer userId) {
+    public ResponseEntity<String> borrarUsuario(String passwd, Integer userId) {
         return userService.borrarUsuario(passwd, userId);
     }
 
     @PostMapping("/users")
-    public String agregarUsuario(@RequestBody UserDTO user) {
+    public ResponseEntity<String> agregarUsuario(@RequestBody UserDTO user) {
         return userService.agregarUsuario(user);
     }
 
     @PutMapping("/users/{userId}/{username}")
-    public String renombrarUsuario(@PathVariable Integer userId, @PathVariable String username) {
+    public ResponseEntity<String> renombrarUsuario(@PathVariable Integer userId, @PathVariable String username) {
         return userService.renombrarUsuario(userId, username);
     }
 }
