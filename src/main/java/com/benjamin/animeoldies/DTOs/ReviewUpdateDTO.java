@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReviewUpdateDTO {
-    private Integer score;
+    private Integer id;
+    private Double score;
     private String body;
 }

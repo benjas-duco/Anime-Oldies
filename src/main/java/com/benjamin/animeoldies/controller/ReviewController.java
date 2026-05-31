@@ -50,9 +50,9 @@ public class ReviewController {
         return reviewService.eliminarReview(reviewId);
     }
 
-    @PutMapping("/reviews/{reviewId}")
-    public ResponseEntity<String> updateReview(@PathVariable Integer reviewId, @RequestBody ReviewUpdateDTO newReview) {
-        return reviewService.actualizarReview(reviewId, newReview);
+    @PutMapping("/reviews")
+    public ResponseEntity<String> updateReview(@RequestBody ReviewUpdateDTO newReview) {
+        return reviewService.actualizarReview(newReview);
     }
 
     @PutMapping("/reviews/{reviewId}/aprove")

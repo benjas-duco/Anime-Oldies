@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AnimeUpdateDTO {
+public class AnimeAddDTO {
     private String title;
     private String resume;
     private List<LinkDTO> links = new ArrayList<>();

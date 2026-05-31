@@ -8,8 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReviewDTO {
+    private Integer id;
     private Integer userId;
     private Integer animeId;
-    private Integer score;
+    private Double score;
     private String body;
+    private String state;
 }

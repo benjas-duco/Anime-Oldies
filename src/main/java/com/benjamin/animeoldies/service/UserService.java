@@ -25,6 +25,7 @@ public class UserService {
 
     private UserDTO userToDTO(User user) {
         UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
         dto.setNickname(user.getNickname());
         return dto;
     }
@@ -68,8 +69,8 @@ public class UserService {
         if(!usuario.isEmpty()) return ResponseEntity.status(409).body("Ya existe un usuario con ese nombre, intente otro");
         User newUser = new User();
         newUser.setNickname(user.getNickname());
-        userRepo.save(newUser);
-        return ResponseEntity.ok("Usuario agregado con exito");
+        User usr = userRepo.save(newUser);
+        return ResponseEntity.ok("Usuario agregado con exito (ID: "+usr.getId()+")");
     }
 
     public ResponseEntity<String> renombrarUsuario(Integer userId, String nombre) {

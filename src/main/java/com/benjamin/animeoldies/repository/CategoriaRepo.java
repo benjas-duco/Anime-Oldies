@@ -10,4 +10,5 @@ import com.benjamin.animeoldies.model.Categoria;
 @Repository
 public interface CategoriaRepo extends JpaRepository<Categoria, Integer> {
     Optional<Categoria> findByName(String name);
+    Optional<Categoria> findByNameIgnoreCase(String name);
 }

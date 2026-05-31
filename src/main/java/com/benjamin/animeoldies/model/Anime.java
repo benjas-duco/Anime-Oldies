@@ -19,6 +19,7 @@ public class Anime {
     @NotBlank
     private String title;
 
+    @Column(columnDefinition = "TEXT")
     @NotBlank
     private String resume;
 

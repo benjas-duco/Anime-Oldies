@@ -1,12 +1,12 @@
 package com.benjamin.animeoldies.service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.benjamin.animeoldies.DTOs.CategoriaDTO;
 import com.benjamin.animeoldies.model.Categoria;
 import com.benjamin.animeoldies.repository.CategoriaRepo;
 
@@ -15,15 +15,15 @@ public class CategoryService {
     @Autowired
     CategoriaRepo categoriaRepo;
 
-    public List<Categoria> obtenerCategorias() {
-        return categoriaRepo.findAll();
+    private List<CategoriaDTO> categoriesToDTO(List<Categoria> cats) {
+        List<CategoriaDTO> list = new ArrayList<>();
+        for(Categoria c : cats) {
+            list.add(new CategoriaDTO(c.getId(),c.getName()));
+        }
+        return list;
     }
 
-    public ResponseEntity<String> borrarCategoria(Integer categoryId) {
-        if(categoryId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
-        Optional<Categoria> cat = categoriaRepo.findById(categoryId);
-        if(cat.isEmpty()) return ResponseEntity.status(404).body("No existe una categoria con ese ID");
-        categoriaRepo.deleteById(categoryId);
-        return ResponseEntity.ok("Categoria eliminada correctamente");
+    public List<CategoriaDTO> obtenerCategorias() {
+        return categoriesToDTO(categoriaRepo.findAll());
     }
 }

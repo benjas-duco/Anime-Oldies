@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LinkDTO {
-    private Integer id;
-    private String link;
-    private String name;
+public class ContentBody {
+    private String content;
 }

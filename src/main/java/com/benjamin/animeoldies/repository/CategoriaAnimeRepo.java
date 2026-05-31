@@ -20,4 +20,5 @@ public interface CategoriaAnimeRepo extends JpaRepository<CategoriaAnime, Intege
     List<Categoria> findCategoryByAnimeId(@Param("anime_id") Integer animeId);
 
     void deleteByAnime_Id(Integer anime_id);
+    void deleteByCategory_id(Integer category_id);
 }

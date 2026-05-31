@@ -33,20 +33,52 @@ public class ReviewService {
     @Autowired
     AnimeRepo animeRepo;
 
-    public List<Review> obtenerTodasLasReviews() {
-        return reviewRepo.findAll();
+    public List<ReviewDTO> obtenerTodasLasReviews() {
+        List<Review> reviews = reviewRepo.findAll();
+        List<ReviewDTO> finList = new ArrayList<>();
+
+        for(Review r : reviews) {
+            finList.add(reviewToDTO(r));
+        }
+
+        return finList;
     }
 
-    public List<Review> obtenerReviewsPorEstado(String state) {
+    private ReviewDTO reviewToDTO(Review rev) {
+        ReviewDTO review = new ReviewDTO();
+        review.setId(rev.getId());
+        review.setAnimeId(rev.getAnime().getId());
+        review.setUserId(rev.getUser().getId());
+        review.setBody(rev.getBody());
+        review.setScore(rev.getScore());
+        review.setState(rev.getState().getName());
+        return review;
+    }
+
+    public List<ReviewDTO> obtenerReviewsPorEstado(String state) {
         Optional<State> estado = stateRepo.findByName(state);
         if(estado.isEmpty()) return new ArrayList<>();
+        List<Review> reviews = reviewRepo.findByState_Id(estado.get().getId());
+        List<ReviewDTO> finList = new ArrayList<>();
 
-        return reviewRepo.findByState_Id(estado.get().getId());
+        for(Review r : reviews) {
+            finList.add(reviewToDTO(r));
+        }
+
+        return finList;
     }
 
-    public List<Review> obtenerReviewsPorUsuario(Integer userId) {
+    public List<ReviewDTO> obtenerReviewsPorUsuario(Integer userId) {
         if(userId == null) return new ArrayList<>();
-        return reviewRepo.findByUser_Id(userId);
+
+        List<Review> reviews = reviewRepo.findByUser_Id(userId);
+        List<ReviewDTO> finList = new ArrayList<>();
+
+        for(Review r : reviews) {
+            finList.add(reviewToDTO(r));
+        }
+
+        return finList;
     }
 
     public ResponseEntity<String> agregarReview(ReviewDTO review) {
@@ -71,8 +103,8 @@ public class ReviewService {
         postReview.setScore(review.getScore());
         postReview.setState(stateRepo.findByName("en revision").get());
 
-        reviewRepo.save(postReview);
-        return ResponseEntity.ok("Review agregada correctamente");
+        Review rev = reviewRepo.save(postReview);
+        return ResponseEntity.ok("Review agregada correctamente (ID: "+rev.getId()+")");
     }
 
     public ResponseEntity<String> eliminarReview(Integer reviewId) {
@@ -82,21 +114,24 @@ public class ReviewService {
         return ResponseEntity.ok("Review eliminada correctamente");
     }
 
-    public ResponseEntity<String> actualizarReview(Integer reviewId, ReviewUpdateDTO newReview) {
-        if(reviewId == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
-        if(newReview.getBody() == null || newReview.getBody().strip().equals("")) 
-            return ResponseEntity.badRequest().body("La review no puede tener un contenido vacio");
-        if(newReview.getScore() == null || newReview.getScore() < 0 || newReview.getScore() > 10) 
-            return ResponseEntity.badRequest().body("El puntaje de la review debe estar de entre 0 y 10");
-
-        Optional<Review> review = reviewRepo.findById(reviewId);
-
+    public ResponseEntity<String> actualizarReview(ReviewUpdateDTO newReview) {
+        if(newReview.getId() == null) return ResponseEntity.badRequest().body("Se debe proporcionar una ID valida");
+        Optional<Review> review = reviewRepo.findById(newReview.getId());
         if(review.isEmpty()) return ResponseEntity.status(404).body("La review que se intenta actualizar no existe");
 
-        review.get().setBody(newReview.getBody());
-        review.get().setScore(newReview.getScore());
+        Review rev = review.get();
 
-        reviewRepo.save(review.get());
+        if(newReview.getBody() != null) {
+            if (newReview.getBody().strip().equals("")) return ResponseEntity.badRequest().body("El contenido de la review no puede estar vacio");
+            rev.setBody(newReview.getBody());
+        }
+
+        if(newReview.getScore() != null) {
+            if(newReview.getScore() < 0 || newReview.getScore() > 10) return ResponseEntity.badRequest().body("El puntaje de la review debe estar de entre 0 y 10");
+            rev.setScore(newReview.getScore());
+        }
+
+        reviewRepo.save(rev);
         return ResponseEntity.ok("Review actualizada correctamente");
     }
 

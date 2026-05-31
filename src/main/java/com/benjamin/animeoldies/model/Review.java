@@ -25,9 +25,9 @@ public class Review {
     private Anime anime;
 
     @NotNull
-    private Integer score;
+    private Double score;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     @NotBlank
     private String body;
 
