@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.benjamin.animeoldies.DTOs.ReviewDTO;
 import com.benjamin.animeoldies.DTOs.ReviewUpdateDTO;
-import com.benjamin.animeoldies.model.Review;
 import com.benjamin.animeoldies.service.ReviewService;
 
 @RestController
@@ -26,17 +25,17 @@ public class ReviewController {
     ReviewService reviewService;
 
     @GetMapping("/reviews")
-    public List<Review> getAllReviews() {
+    public List<ReviewDTO> getAllReviews() {
         return reviewService.obtenerTodasLasReviews();
     }
 
     @GetMapping("/reviews/by-state/{state}")
-    public List<Review> getReviewsByState(@PathVariable String state) {
+    public List<ReviewDTO> getReviewsByState(@PathVariable String state) {
         return reviewService.obtenerReviewsPorEstado(state);
     }
 
     @GetMapping("/reviews/by-user/{userId}")
-    public List<Review> getReviewsByUser(@PathVariable Integer userId) {
+    public List<ReviewDTO> getReviewsByUser(@PathVariable Integer userId) {
         return reviewService.obtenerReviewsPorUsuario(userId);
     }
 

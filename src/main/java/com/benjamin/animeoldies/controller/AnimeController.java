@@ -20,7 +20,6 @@ import com.benjamin.animeoldies.DTOs.ContentBody;
 import com.benjamin.animeoldies.DTOs.LinkDTO;
 import com.benjamin.animeoldies.DTOs.ReviewDTO;
 import com.benjamin.animeoldies.DTOs.AnimeAddDTO;
-import com.benjamin.animeoldies.model.Review;
 import com.benjamin.animeoldies.model.State;
 import com.benjamin.animeoldies.service.AnimeService;
 
